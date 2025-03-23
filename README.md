@@ -1,6 +1,6 @@
 # TrailMakers_TrailMakers_k8s-failure-prediction
 
-A robust AI/ML solution for predicting Kubernetes cluster failures, developed for the Hackathon Phase 1. This project leverages XGBoost and Isolation Forest to detect node/pod failures, resource exhaustion, network issues, and service disruptions.
+A robust AI/ML solution for predicting Kubernetes cluster failures, developed by TrailMakers for Hackathon Phase 1. This project leverages XGBoost and Isolation Forest to detect node/pod failures, resource exhaustion, network issues, and service disruptions.
 
 ---
 
@@ -8,42 +8,42 @@ A robust AI/ML solution for predicting Kubernetes cluster failures, developed fo
 
 | Directory       | Contents                                                                 |
 |-----------------|-------------------------------------------------------------------------|
-| `/src`          | `k8s_failure_prediction.ipynb` - Complete code for data processing, model training, and evaluation. |
+| `/src`          | `k8s_failure_prediction.ipynb` -  |
 | `/models`       | Trained model files: `scaler.pkl`, `feature_selector.pkl`, `k8s_failure_predictor.pkl`, `anomaly_detector.pkl`. |
-| `/data`         | `kubernetes_metrics_dataset.csv` - Full dataset (or external link if large). |
-| `/docs`         | (Optional additional documentation; currently empty).                  |
-| `/presentation` | (Slides and recorded demo to be added: `presentation.pdf`, `presentation.mp4`). |
+| `/data`         | `kubernetes_metrics_dataset.csv` - |
+| `/docs`         | `README.md file `                  |
+| `/presentation` | `TrailMakers_Kubernetes_ppt.pptx` - Presentation slides.<br>`TrailMakers_Demo_video.mp4`  |
 
 ---
 
 ## Project Overview
 
 ### Objective
-Develop a predictive model to identify Kubernetes cluster issues, including node failures, pod crashes, resource exhaustion, network latency, and service disruptions, using an internet-sourced dataset.
+Develop a predictive model to identify Kubernetes cluster issues, including node failures, pod crashes, resource exhaustion, network latency, and service disruptions, using a Kaggle-sourced dataset.
 
 ### Approach
 1. **Data Preprocessing**:
-   - Loaded `kubernetes_metrics_dataset.csv` (10,000 rows, Feb 7–May 22, 2025).
-   - Filled missing `issue_type` values with `No_Issue` (70% prevalence).
-   - Sorted chronologically for time-series integrity.
+   - Loaded `kubernetes_metrics_dataset.csv` 
+   - Filled missing `issue_type` with `No_Issue` (70% prevalence).
+   - Sorted chronologically and clipped negative latencies to 0.
 
 2. **Feature Engineering**:
-   - Engineered 25 features, including rolling averages (`cpu_usage_percent_rolling`) and `network_io_delta`.
-   - Reduced to 15 key features using Random Forest selection (e.g., `node_ready_status`, `pod_restart_count`).
+   - Engineered 25 features (e.g., `cpu_usage_percent_rolling`, `network_io_delta`).
+   - Selected 15 key features via Random Forest (e.g., `node_ready_status`, `pod_restart_count`).
 
 3. **Modeling**:
-   - Trained XGBoost with `TimeSeriesSplit` (5 folds) and class weighting (`scale_pos_weight=22.9`).
-   - Integrated Isolation Forest (contamination=0.01) for anomaly detection in a hybrid model.
-   - Evaluated robustness with Gaussian noise (std=0.05).
+   - Trained XGBoost with 5-fold `TimeSeriesSplit`, `scale_pos_weight=22.9` for imbalance.
+   - Integrated Isolation Forest (contamination=0.01) for a hybrid model.
+   - Defined custom thresholds (e.g., `node_failure`: 0.7) and tested with noise (std=0.05).
 
 4. **Evaluation**:
-   - Analyzed performance with F1, precision, recall, and ROC-AUC.
-   - Defined and tested custom thresholds for 9 issue types (e.g., `node_failure`: 0.7).
+   - Measured F1, precision, recall, and ROC-AUC on clean and noisy test sets.
+   - Explained predictions with top features per sample.
 
 ---
 
 ## Key Metrics
-- **Primary Metrics**: F1 Score (weighted), Precision, Recall, ROC-AUC.
+- **Primary Metrics**: Weighted F1 Score, Precision, Recall, ROC-AUC.
 - **Top Features**:
   - `node_ready_status` (Importance: 0.1667)
   - `pod_restart_count` (0.0994)
@@ -54,18 +54,18 @@ Develop a predictive model to identify Kubernetes cluster issues, including node
 ## Model Performance
 | Stage               | Metric                  | Value  |
 |---------------------|-------------------------|--------|
-| **Cross-Validation**| Average F1 Score        | 0.998  |
+| **Cross-Validation**| Average F1 Score        | 0.9985 |
 |                    | Scores                  | [0.9969, 0.9985, 0.9985, 0.9992, 0.9992] |
 | **Test Set (Clean)**| XGBoost F1 Score        | 0.999  |
 |                    | XGBoost ROC-AUC         | 1.000  |
 |                    | Hybrid F1 Score         | 0.99   |
-| **Test Set (Noisy)**| F1 Score (std=0.05)     | 0.96   |
+| **Test Set (Noisy)**| Hybrid F1 Score (std=0.05) | 0.97   |
 |                    | Minority Class Example  | `scheduler_failure`: 1.00 → 0.60 |
 
 ### Observations
-- Exceptional performance on clean data (F1: 0.999), with near-perfect detection across 10 classes.
-- Noise test revealed moderate performance drop (F1 to 0.96), particularly for minority classes.
-- Hybrid model (F1: 0.99) balances robustness and accuracy, recommended for deployment.
+- Near-perfect performance on clean data (F1: 0.999), with robust hybrid results (F1: 0.99).
+- Noise test showed a drop to 0.97 F1, with minority classes like `scheduler_failure` more affected.
+- Thresholds achieved F1 scores of 0.993–1.0, optimized for clean data detection.
 
 ---
 
@@ -83,8 +83,7 @@ Develop a predictive model to identify Kubernetes cluster issues, including node
 - **Notebook**: [Kaggle Notebook](https://www.kaggle.com/code/abhishekyelmamdiii/k8s-failure-prediction-ipynb/)
 - **Dataset**: [Kubernetes Health Dataset](https://www.kaggle.com/datasets/abhishekyelmamdiii/kubernetes-health-ds1)
 - **Models**: All models are within GitHub’s size limit (3.70 MiB total) and stored in `/models`; no external hosting required currently.
-- **Presentation**: 
-
+ 
 ---
 
 ## Additional Details
@@ -93,3 +92,12 @@ Develop a predictive model to identify Kubernetes cluster issues, including node
 - **Threshold Analysis**: Custom thresholds were defined for 9 issue types (e.g., `memory_pressure`: 0.4, `node_failure`: 0.7) and tested on the clean test set, achieving F1 scores ranging from 0.993 to 1.0. This optimized detection but may need adjustment for noisier environments.
 
 ---
+
+Team
+**TrailMakers:**
+`Abhishek Yelmamdi (@ABHISHEK-YELMAMDI)`
+`Rutuja Bhagat`
+`Bhoomika R P`
+
+---
+
