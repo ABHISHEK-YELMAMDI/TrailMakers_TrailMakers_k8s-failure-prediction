@@ -8,7 +8,7 @@ A robust AI/ML solution for predicting Kubernetes cluster failures, developed by
 
 | Directory       | Contents                                                                 |
 |-----------------|-------------------------------------------------------------------------|
-| `/src`          | `k8s_failure_prediction.ipynb` -  |
+| `/notebook`          | `k8s_failure_prediction.ipynb` -  |
 | `/models`       | Trained model files: `scaler.pkl`, `feature_selector.pkl`, `k8s_failure_predictor.pkl`, `anomaly_detector.pkl`. |
 | `/data`         | `kubernetes_metrics_dataset.csv` - |
 | `/docs`         | `README.md file `                  |
